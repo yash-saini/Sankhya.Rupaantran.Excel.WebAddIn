@@ -99,7 +99,7 @@
                     if (decimal.TryParse(values[r][c]?.ToString(), out var amount))
                     {
                         // Inside ProcessValues method
-                        var apiUrl = $"https://sankhya-rupaantran-excel-webaddin-webapi.onrender.com/api/Rupaantran/convert?amount={amount}&type={Type}&format={Format}";
+                        var apiUrl = $"https://sankhya-rupaantran-excel-webaddinwebapi.onrender.com/api/Rupaantran/convert?amount={amount}&type={Type}&format={Format}";
                         newValues[r][c] = await Http.GetStringAsync(apiUrl);
                     }
                     else
