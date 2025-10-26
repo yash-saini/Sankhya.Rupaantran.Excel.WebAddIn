@@ -1,0 +1,63 @@
+﻿@inherits LayoutComponentBase
+
+<div class="taskpane-container">
+    <header class="taskpane-header">
+        <h2>Sankhya Rupaantran</h2>
+    </header>
+
+    <main class="taskpane-main">
+        @Body
+    </main>
+</div>
+
+<style>
+    .taskpane-container {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        width: 100%;
+        padding: 10px;
+        box-sizing: border-box;
+    }
+
+    .taskpane-header {
+        background-color: #0078d4;
+        color: white;
+        padding: 10px;
+        font-size: 1.2rem;
+        text-align: center;
+        border-radius: 4px;
+        margin-bottom: 10px;
+    }
+
+    .taskpane-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    input, select, button {
+        font-size: 1rem;
+        padding: 5px;
+        margin: 2px 0;
+    }
+
+    button {
+        background-color: #0078d4;
+        color: white;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background-color: #005a9e;
+    }
+
+    p {
+        margin-top: 10px;
+        font-weight: bold;
+    }
+</style>

@@ -1,0 +1,146 @@
+﻿@page "/"
+@inject HttpClient Http
+@inject IJSRuntime JS
+@implements IDisposable
+
+<h3>Convert Selected Cells</h3>
+
+<div class="mb-2">
+    Select the cells in your sheet, then choose a format and click convert.
+</div>
+
+<label>Conversion Type:</label>
+<select @bind="Type" class="form-select mb-2">
+    <option>Lakhs</option>
+    <option>Crores</option>
+    <option>Millions</option>
+    <option>Billions</option>
+</select>
+
+<label>Number Format:</label>
+<select @bind="Format" class="form-select mb-2">
+    <option value="N0">0 Decimal Places</option>
+    <option value="N1">1 Decimal Place</option>
+    <option value="N2">2 Decimal Places</option>
+</select>
+
+<button class="btn btn-success w-100" @onclick="StartConversion" disabled="@isConverting">
+    @if (isConverting)
+    {
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        <span> Converting...</span>
+    }
+    else
+    {
+        <span>Convert Selected Range</span>
+    }
+</button>
+
+@if (!string.IsNullOrEmpty(StatusText))
+{
+    <div class="alert alert-info mt-2">@StatusText</div>
+}
+@if (!string.IsNullOrEmpty(ErrorText))
+{
+    <div class="alert alert-danger mt-2">@ErrorText</div>
+}
+
+
+@code {
+    private string Type { get; set; } = "Lakhs";
+    private string Format { get; set; } = "N2";
+    private string ErrorText { get; set; } = "";
+    private string StatusText { get; set; } = "";
+    private bool isConverting = false;
+
+    private DotNetObjectReference<Index> dotNetHelper;
+
+    public class RangeData
+    {
+        public object[][] Values { get; set; }
+        public string A1Notation { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        dotNetHelper = DotNetObjectReference.Create(this);
+        await JS.InvokeVoidAsync("googleSheetInterop.registerDotNetHelper", dotNetHelper);
+    }
+
+    private async Task StartConversion()
+    {
+        isConverting = true;
+        ErrorText = "";
+        StatusText = "Getting values from sheet...";
+        StateHasChanged();
+
+        await JS.InvokeVoidAsync("googleSheetInterop.getRange");
+    }
+
+    [JSInvokable]
+    public async Task ProcessValues(RangeData data)
+    {
+        try
+        {
+            StatusText = "Converting values...";
+            StateHasChanged();
+
+            var values = data.Values;
+            var newValues = new object[values.Length][];
+
+            // Loop through all rows
+            for (int r = 0; r < values.Length; r++)
+            {
+                newValues[r] = new object[values[r].Length];
+                // Loop through all cells in the row
+                for (int c = 0; c < values[r].Length; c++)
+                    {
+                    // Check if the value is a number
+                    if (decimal.TryParse(values[r][c]?.ToString(), out var amount))
+                    {
+                        var apiUrl = $"https://localhost:7110/api/Rupaantran/convert?amount={amount}&type={Type}&format={Format}";
+                        newValues[r][c] = await Http.GetStringAsync(apiUrl);
+                    }
+                    else
+                    {
+                        // Not a number, so just put the original value back
+                        newValues[r][c] = values[r][c];
+                    }
+                }
+            }
+
+            // 4. Send all converted values AND the original address back to the sheet
+            StatusText = "Writing values back to sheet...";
+            StateHasChanged();
+            await JS.InvokeVoidAsync("googleSheetInterop.setRange", data.A1Notation, newValues);
+        }
+        catch (Exception ex)
+        {
+            ErrorText = $"Blazor Error: {ex.Message}";
+            isConverting = false;
+            StateHasChanged();
+        }
+    }
+
+    [JSInvokable]
+    public void OnConversionComplete()
+    {
+        StatusText = "Conversion complete!";
+        isConverting = false;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnScriptError(string errorMessage)
+    {
+        ErrorText = $"Apps Script Error: {errorMessage}";
+        StatusText = "";
+        isConverting = false;
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        dotNetHelper?.Dispose();
+    }
+}
