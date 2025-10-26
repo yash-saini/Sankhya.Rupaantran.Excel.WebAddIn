@@ -12,7 +12,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowWASM", policy =>
     {
         policy.WithOrigins(
-                "https://localhost:7109" 
+                "https://sankhya-rupaantran-excel-webaddin-wasm.onrender.com"
             ).AllowAnyMethod()
               .AllowAnyHeader();
     });
