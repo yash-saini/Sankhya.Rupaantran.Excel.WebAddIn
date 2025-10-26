@@ -1,0 +1,25 @@
+﻿# Stage 1: Build the app
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+# Copy all .csproj files and restore dependencies
+# This copies the project file from its subfolder
+COPY *.csproj .
+RUN dotnet restore
+
+# Copy the rest of the source code and build
+COPY . .
+RUN dotnet publish -c Release -o /app/publish
+
+# Stage 2: Create the final runtime image
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+WORKDIR /app
+COPY --from=build /app/publish .
+
+# Render's free tier requires port 10000
+ENV ASPNETCORE_URLS=http://+:10000
+EXPOSE 10000
+
+# --- CHANGE THIS LINE ---
+# Change 'Sankhya.Rupaantran.ExcelWebAddIn.WebAPI.dll' to match your project's DLL
+ENTRYPOINT ["dotnet", "Sankhya.Rupaantran.ExcelWebAddIn.WebAPI.dll"]
