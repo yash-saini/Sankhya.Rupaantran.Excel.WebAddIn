@@ -20,6 +20,4 @@ COPY --from=build /app/publish .
 ENV ASPNETCORE_URLS=http://+:10000
 EXPOSE 10000
 
-# --- CHANGE THIS LINE ---
-# Change 'Sankhya.Rupaantran.ExcelWebAddIn.WebAPI.dll' to match your project's DLL
 ENTRYPOINT ["dotnet", "Sankhya.Rupaantran.ExcelWebAddIn.WebAPI.dll"]
